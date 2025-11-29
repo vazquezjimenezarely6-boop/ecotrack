@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Registro - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-edit"></i> Editar Registro de Reciclaje</h2>
+        <p>Actualiza la información del material reciclado</p>
+    </div>
+
+    <form method="POST" class="recycling-form">
+        <div class="form-group">
+            <label for="category">
+                <i class="fas fa-cubes"></i> Tipo de Material
+            </label>
+            <input type="text" value="{{ record.category_name }}" disabled>
+            <small class="form-help">El tipo de material no se puede modificar</small>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity">
+                <i class="fas fa-sort-amount-up"></i> Cantidad *
+            </label>
+            <input type="number" name="quantity" id="quantity" value="{{ record.quantity }}" min="1" max="1000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">
+                <i class="fas fa-sticky-note"></i> Descripción
+            </label>
+            <textarea name="description" id="description" rows="3" placeholder="Describe los materiales reciclados...">{{ record.description or '' }}</textarea>
+        </div>
+
+        <div class="form-info">
+            <div class="info-card">
+                <h4><i class="fas fa-info-circle"></i> Información Actual</h4>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Fecha de registro:</span>
+                        <span class="info-value">{{ record.date }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Puntos actuales:</span>
+                        <span class="info-value" id="current-points">{{ record.points }} pts</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Puntos por unidad:</span>
+                        <span class="info-value">
+                            {% if record.category in categories %}
+                                {{ categories[record.category].points }} pts
+                            {% else %}
+                                0 pts
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen de Puntos Actualizado -->
+        <div id="points-summary" class="points-summary" style="display: none;">
+            <div class="summary-content">
+                <i class="fas fa-coins"></i>
+                <div class="summary-text">
+                    <strong>Nuevos puntos:</strong>
+                    <span id="total-points">0</span> puntos
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-outline">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const quantityInput = document.getElementById('quantity');
+        const pointsSummary = document.getElementById('points-summary');
+        const currentPointsElement = document.getElementById('current-points');
+        
+        // Obtener valores desde los datos de la página
+        const currentPoints = parseInt("{{ record.points }}") || 0;
+        const currentQuantity = parseInt("{{ record.quantity }}") || 0;
+        const pointsPerUnit = parseInt("{{ categories[record.category].points if record.category in categories else 0 }}") || 0;
+        
+        function updatePointsDisplay() {
+            const newQuantity = parseInt(quantityInput.value) || 0;
+            const newPoints = newQuantity * pointsPerUnit;
+            const pointsDiff = newPoints - currentPoints;
+            
+            if (quantityInput.value && newQuantity > 0) {
+                document.getElementById('total-points').textContent = newPoints;
+                pointsSummary.style.display = 'flex';
+                
+                // Mostrar diferencia de puntos
+                let pointsText = `${newPoints} pts`;
+                if (pointsDiff !== 0) {
+                    pointsText += ` (${pointsDiff >= 0 ? '+' : ''}${pointsDiff} pts)`;
+                }
+                
+                if (currentPointsElement) {
+                    currentPointsElement.textContent = pointsText;
+                    
+                    // Cambiar color según si aumenta o disminuye
+                    if (pointsDiff > 0) {
+                        currentPointsElement.style.color = '#27ae60';
+                        currentPointsElement.style.fontWeight = 'bold';
+                    } else if (pointsDiff < 0) {
+                        currentPointsElement.style.color = '#e74c3c';
+                        currentPointsElement.style.fontWeight = 'bold';
+                    } else {
+                        currentPointsElement.style.color = '';
+                        currentPointsElement.style.fontWeight = '';
+                    }
+                }
+            } else {
+                pointsSummary.style.display = 'none';
+                if (currentPointsElement) {
+                    currentPointsElement.textContent = currentPoints + ' pts';
+                    currentPointsElement.style.color = '';
+                    currentPointsElement.style.fontWeight = '';
+                }
+            }
+        }
+        
+        // Actualizar al cambiar cantidad
+        if (quantityInput) {
+            quantityInput.addEventListener('input', updatePointsDisplay);
+            updatePointsDisplay(); // Actualizar al cargar
+        }
+        
+        // Validación del formulario
+        const form = document.querySelector('.recycling-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const quantity = parseInt(quantityInput.value);
+                if (quantity < 1 || quantity > 1000) {
+                    e.preventDefault();
+                    alert('La cantidad debe estar entre 1 y 1000 unidades.');
+                    quantityInput.focus();
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,669 @@
+{% extends "base.html" %}
+
+{% block title %}Ver Registro - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="view-container">
+    <div class="view-header">
+        <div class="header-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+            <div class="action-buttons">
+                <a href="{{ url_for('edit', id=record.id) }}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i> Eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="record-card">
+        <div class="record-header" style="border-left-color: #2E8B57;">
+           <div class="record-icon" style="background: #2E8B57; color: white;">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <div class="record-title">
+                <h2>{{ record.category_name or 'Material Reciclado' }}</h2>
+                <p class="record-date">
+                    <i class="fas fa-calendar"></i> 
+                    {% if record.timestamp %}
+                        {{ record.timestamp[:10] }}
+                    {% else %}
+                        {{ record.date or 'Fecha no disponible' }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="record-points">
+                <span class="points-badge large">
+                    {{ record.points }} pts
+                </span>
+            </div>
+        </div>
+
+        <div class="record-details">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-cubes"></i> Material
+                    </div>
+                    <div class="detail-value">
+                        {{ record.category_name or 'Material no especificado' }}
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-list"></i> Tipo Específico
+                    </div>
+                    <div class="detail-value">
+                        {{ record.description or 'Sin descripción específica' }}
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-sort-amount-up"></i> Cantidad
+                    </div>
+                    <div class="detail-value">
+                        {{ record.quantity }} unidades
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-star"></i> Puntos Ganados
+                    </div>
+                    <div class="detail-value">
+                        {{ record.points }} puntos
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">
+                        <i class="fas fa-calendar-alt"></i> Fecha de Registro
+                    </div>
+                    <div class="detail-value">
+                        {% if record.timestamp %}
+                            {{ record.timestamp[:10] }}
+                        {% else %}
+                            {{ record.date or 'Fecha no disponible' }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            {% if record.description and record.description != 'Sin descripción específica' %}
+            <div class="notes-section">
+                <h4><i class="fas fa-sticky-note"></i> Notas Adicionales</h4>
+                <div class="notes-content">
+                    {{ record.description }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="material-info">
+                <h4><i class="fas fa-info-circle"></i> Información del Material</h4>
+                <div class="info-content">
+                    <p><strong>Puntos por unidad:</strong> 
+                        {% if record.category in categories %}
+                            {{ categories[record.category].points }} puntos
+                        {% else %}
+                            No disponible
+                        {% endif %}
+                    </p>
+                    <p><strong>Instrucciones:</strong> 
+                        {% if record.category in categories %}
+                            {{ categories[record.category].get('instructions', 'Limpia el material antes de reciclar') }}
+                        {% else %}
+                            Limpia el material antes de reciclar
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="impact-card">
+        <h3><i class="fas fa-leaf"></i> Tu Impacto Ambiental</h3>
+        <div class="impact-grid">
+            <div class="impact-item">
+                <div class="impact-icon energy">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <div class="impact-info">
+                    <h4>Ahorro de Energía</h4>
+                    <p>{{ (record.points * 0.5)|round(1) }} kWh ahorrados</p>
+                </div>
+            </div>
+
+            <div class="impact-item">
+                <div class="impact-icon co2">
+                    <i class="fas fa-cloud"></i>
+                </div>
+                <div class="impact-info">
+                    <h4>Reducción CO₂</h4>
+                    <p>{{ (record.points * 0.3)|round(1) }} kg de emisiones evitadas</p>
+                </div>
+            </div>
+
+            <div class="impact-item">
+                <div class="impact-icon water">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="impact-info">
+                    <h4>Ahorro de Agua</h4>
+                    <p>{{ (record.points * 10) }} litros conservados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Confirmar Eliminación</h3>
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+        </div>
+        <div class="modal-body">
+            <p>¿Estás seguro de que quieres eliminar este registro?</p>
+            <p class="warning-text">Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+            <a href="{{ url_for('delete', id=record.id) }}" class="btn btn-danger" id="confirmDelete">
+                <i class="fas fa-trash"></i> Eliminar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function confirmDelete() {
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'block';
+}
+
+function closeModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.style.display = 'none';
+}
+
+// Cerrar modal al hacer clic fuera
+window.addEventListener('click', function(event) {
+    const modal = document.getElementById('deleteModal');
+    if (event.target === modal) {
+        closeModal();
+    }
+});
+
+// Cerrar modal con ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeModal();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Animación de entrada
+    const recordCard = document.querySelector('.record-card');
+    const impactCard = document.querySelector('.impact-card');
+    
+    if (recordCard) {
+        recordCard.style.opacity = '0';
+        recordCard.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            recordCard.style.transition = 'all 0.5s ease';
+            recordCard.style.opacity = '1';
+            recordCard.style.transform = 'translateY(0)';
+        }, 100);
+    }
+    
+    if (impactCard) {
+        impactCard.style.opacity = '0';
+        
+        setTimeout(() => {
+            impactCard.style.transition = 'all 0.5s ease 0.2s';
+            impactCard.style.opacity = '1';
+        }, 300);
+    }
+});
+</script>
+
+<style>
+.view-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.view-header {
+    margin-bottom: 2rem;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.record-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.record-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+    border-left: 4px solid #2E8B57;
+    background: linear-gradient(135deg, #f8fdf8, #ffffff);
+}
+
+.record-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.record-title {
+    flex: 1;
+}
+
+.record-title h2 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.record-date {
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.record-points {
+    flex-shrink: 0;
+}
+
+.points-badge.large {
+    background: #2E8B57;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    box-shadow: 0 3px 10px rgba(46, 139, 87, 0.3);
+}
+
+.record-details {
+    padding: 0 1.5rem 1.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.detail-item {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid #2E8B57;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.detail-value {
+    color: #333;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.notes-section,
+.material-info {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.notes-section h4,
+.material-info h4 {
+    color: #333;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.notes-content {
+    color: #666;
+    line-height: 1.6;
+    white-space: pre-line;
+}
+
+.info-content p {
+    margin-bottom: 0.5rem;
+    color: #666;
+    line-height: 1.5;
+    font-size: 0.9rem;
+}
+
+.impact-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+}
+
+.impact-card h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.impact-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.impact-item:hover {
+    transform: translateY(-2px);
+}
+
+.impact-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.impact-icon.energy {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.impact-icon.co2 {
+    background: linear-gradient(135deg, #7f8c8d, #95a5a6);
+}
+
+.impact-icon.water {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.impact-info h4 {
+    color: #333;
+    margin-bottom: 0.25rem;
+    font-size: 0.95rem;
+}
+
+.impact-info p {
+    color: #666;
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #2E8B57;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1f6b43;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-outline {
+    background: transparent;
+    color: #333;
+    border: 2px solid #ddd;
+    text-decoration: none;
+}
+
+.btn-outline:hover {
+    border-color: #2E8B57;
+    color: #2E8B57;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: white;
+    text-decoration: none;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 0;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.3rem;
+}
+
+.modal-close {
+    color: #666;
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body p {
+    margin: 0 0 1rem 0;
+    color: #666;
+    line-height: 1.5;
+}
+
+.warning-text {
+    color: #e74c3c !important;
+    font-weight: 600;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .view-container {
+        padding: 0.5rem;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .record-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .impact-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .record-details {
+        padding: 0 1rem 1rem;
+    }
+    
+    .modal-content {
+        margin: 20% auto;
+        width: 95%;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .record-header {
+        padding: 1rem;
+    }
+    
+    .record-title h2 {
+        font-size: 1.3rem;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}

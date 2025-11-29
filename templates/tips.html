@@ -1,0 +1,567 @@
+{% extends "base.html" %}
+
+{% block title %}Consejos Verdes - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="tips-page">
+    <!-- Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-lightbulb"></i> Consejos Verdes</h1>
+        <p>Aprende a reciclar mejor y maximiza tu impacto ambiental</p>
+    </div>
+
+    <!-- Grid de Consejos -->
+    <div class="tips-grid">
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-sort"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Separa Correctamente</h3>
+                <p>Divide tus residuos en plástico, papel, vidrio, metal y orgánicos. Una buena separación facilita el proceso de reciclaje.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                1
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-tint"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Limpia los Envases</h3>
+                <p>Enjuaga botellas, latas y envases de plástico antes de reciclarlos. Esto evita la contaminación de otros materiales.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                2
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Compacta el Cartón</h3>
+                <p>Aplasta las cajas de cartón para ahorrar espacio en los contenedores y facilitar su transporte.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                3
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Reutiliza Primero</h3>
+                <p>Antes de reciclar, considera si puedes reutilizar el item. Dar una segunda vida a los objetos es aún mejor que reciclar.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                4
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Conoce los Símbolos</h3>
+                <p>Aprende a identificar los símbolos de reciclaje en los productos para saber cómo desecharlos correctamente.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                5
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <div class="tip-icon" style="color: #2E8B57;">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="tip-content">
+                <h3>Usa Bolsas Reutilizables</h3>
+                <p>Evita las bolsas plásticas de un solo uso. Lleva tus propias bolsas cuando vayas de compras.</p>
+            </div>
+            <div class="tip-badge" style="background: #2E8B57;">
+                6
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Beneficios -->
+    <div class="benefits-section">
+        <h2><i class="fas fa-seedling"></i> Beneficios de Reciclar</h2>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-globe-americas"></i>
+                </div>
+                <h4>Planeta Más Limpio</h4>
+                <p>Reduces la contaminación y conservas los recursos naturales para las futuras generaciones.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h4>Ahorro de Energía</h4>
+                <p>Reciclar consume menos energía que producir nuevos materiales desde cero.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-tree"></i>
+                </div>
+                <h4>Conservación de Bosques</h4>
+                <p>Al reciclar papel, salvas árboles y proteges los ecosistemas forestales.</p>
+            </div>
+
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-water"></i>
+                </div>
+                <h4>Ahorro de Agua</h4>
+                <p>Reduces el consumo de agua en los procesos de producción industrial.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Impacto -->
+    <div class="impact-section">
+        <h2><i class="fas fa-chart-line"></i> Tu Impacto en Números</h2>
+        <div class="impact-stats">
+            <div class="impact-stat">
+                <div class="stat-number" id="items-recycled">0</div>
+                <div class="stat-label">Items Reciclados</div>
+            </div>
+            <div class="impact-stat">
+                <div class="stat-number" id="co2-saved">0.0</div>
+                <div class="stat-label">kg CO₂ Evitados</div>
+            </div>
+            <div class="impact-stat">
+                <div class="stat-number" id="water-saved">0</div>
+                <div class="stat-label">Litros de Agua Ahorrados</div>
+            </div>
+            <div class="impact-stat">
+                <div class="stat-number" id="energy-saved">0.0</div>
+                <div class="stat-label">kWh de Energía Ahorrados</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Llamado a la Acción -->
+    <div class="cta-section">
+        <div class="cta-card">
+            <div class="cta-content">
+                <h3>¡Tu Acción Cuenta!</h3>
+                <p>Cada item que reciclas hace la diferencia. Sigue contribuyendo a un planeta más verde.</p>
+                <a href="{{ url_for('create') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Registrar Nuevo Reciclaje
+                </a>
+            </div>
+            <div class="cta-icon">
+                <i class="fas fa-hands-helping"></i>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadImpactStats();
+});
+
+function loadImpactStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            updateImpactStats(data);
+        })
+        .catch(error => {
+            console.log('Error cargando estadísticas de impacto:', error);
+        });
+}
+
+function updateImpactStats(stats) {
+    const totalItems = stats.total_items || 0;
+    const totalPoints = stats.total_points || 0;
+    
+    // Calcular impacto ambiental basado en puntos
+    const co2Saved = (totalPoints * 0.3).toFixed(1);
+    const waterSaved = totalPoints * 10;
+    const energySaved = (totalPoints * 0.5).toFixed(1);
+    
+    // Actualizar estadísticas
+    document.getElementById('items-recycled').textContent = totalItems;
+    document.getElementById('co2-saved').textContent = co2Saved;
+    document.getElementById('water-saved').textContent = waterSaved;
+    document.getElementById('energy-saved').textContent = energySaved;
+    
+    // Animación de números
+    animateNumbers();
+}
+
+function animateNumbers() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    statNumbers.forEach(stat => {
+        const finalValue = parseFloat(stat.textContent) || 0;
+        const duration = 2000;
+        const steps = 60;
+        const stepValue = finalValue / steps;
+        let currentValue = 0;
+        
+        const timer = setInterval(() => {
+            currentValue += stepValue;
+            if (currentValue >= finalValue) {
+                stat.textContent = finalValue.toLocaleString();
+                clearInterval(timer);
+            } else {
+                stat.textContent = Math.floor(currentValue).toLocaleString();
+            }
+        }, duration / steps);
+    });
+}
+</script>
+
+<style>
+.tips-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: #2E8B57;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.tip-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 1.5rem;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid #2E8B57;
+}
+
+.tip-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.tip-icon {
+    font-size: 1.8rem;
+    min-width: 50px;
+    text-align: center;
+    padding-top: 0.5rem;
+}
+
+.tip-content {
+    flex: 1;
+}
+
+.tip-content h3 {
+    color: #333;
+    margin-bottom: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.tip-content p {
+    color: #666;
+    line-height: 1.6;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.tip-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+.benefits-section {
+    margin-bottom: 3rem;
+}
+
+.benefits-section h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.benefit-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+    border-top: 4px solid #2E8B57;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+
+.benefit-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.benefit-icon i {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.benefit-card h4 {
+    color: #333;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.benefit-card p {
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.impact-section {
+    margin-bottom: 3rem;
+}
+
+.impact-section h2 {
+    color: #333;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.impact-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.impact-stat {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.impact-stat:hover {
+    transform: translateY(-3px);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #2E8B57;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.cta-section {
+    margin-bottom: 2rem;
+}
+
+.cta-card {
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 8px 25px rgba(46, 139, 87, 0.3);
+}
+
+.cta-content {
+    flex: 1;
+}
+
+.cta-content h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.cta-content p {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: white;
+    color: #2E8B57;
+}
+
+.btn-primary:hover {
+    background: #f8f9fa;
+    color: #1f6b43;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    text-decoration: none;
+}
+
+.cta-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+    margin-left: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .tips-page {
+        padding: 0.5rem;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .impact-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .cta-card {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.5rem;
+    }
+    
+    .cta-icon {
+        margin: 1rem 0 0 0;
+        font-size: 2.5rem;
+    }
+    
+    .tip-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding: 1.5rem;
+    }
+    
+    .tip-badge {
+        position: static;
+        margin: 0 auto;
+        width: 25px;
+        height: 25px;
+    }
+    
+    .tip-icon {
+        padding-top: 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .impact-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .benefits-section h2,
+    .impact-section h2 {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

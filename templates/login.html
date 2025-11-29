@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="fas fa-leaf"></i>
+            </div>
+            <h2>Bienvenido a EcoTrack</h2>
+            <p>Inicia sesión para gestionar tu reciclaje</p>
+        </div>
+
+        <!-- Formulario de Login -->
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Correo Electrónico
+                </label>
+                <input type="email" name="email" id="email" placeholder="tu@email.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Contraseña
+                </label>
+                <input type="password" name="password" id="password" placeholder="••••••••" required>
+            </div>
+
+            <div class="form-options">
+                <label class="checkbox">
+                    <input type="checkbox" name="remember">
+                    <span class="checkmark"></span>
+                    Recordar sesión
+                </label>
+                <a href="#forgot-password" class="forgot-password">¿Olvidaste tu contraseña?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-large">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>¿No tienes una cuenta? 
+                <a href="{{ url_for('register') }}" class="auth-link">Regístrate aquí</a>
+            </p>
+        </div>
+
+        <!-- Demo Info -->
+        <div class="demo-info">
+            <div class="demo-header">
+                <i class="fas fa-info-circle"></i>
+                <h4>Modo Demo</h4>
+            </div>
+            <p>Para probar la aplicación, puedes usar estas credenciales de demo:</p>
+            <div class="demo-credentials">
+                <p><strong>Email:</strong> demo@ecotrack.com</p>
+                <p><strong>Contraseña:</strong> ecotrack123</p>
+            </div>
+            <div class="demo-actions">
+                <button type="button" onclick="fillDemoCredentials()" class="btn btn-outline">
+                    <i class="fas fa-magic"></i> Usar Credenciales Demo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefits Section -->
+    <div class="benefits-section">
+        <h3>¿Por qué unirte a EcoTrack?</h3>
+        <div class="benefits-grid">
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h4>Seguimiento de Progreso</h4>
+                <p>Monitoriza tu impacto ambiental y ve tu progreso en tiempo real</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h4>Sistema de Logros</h4>
+                <p>Gana puntos y desbloquea logros por tus acciones ecológicas</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h4>Comunidad Verde</h4>
+                <p>Únete a una comunidad comprometida con el medio ambiente</p>
+            </div>
+            
+            <div class="benefit-card">
+                <div class="benefit-icon">
+                    <i class="fas fa-gem"></i>
+                </div>
+                <h4>Reconocimientos</h4>
+                <p>Obtén certificados y reconocimientos por tu contribución ecológica</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Olvidar Contraseña -->
+<div id="forgot-password" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Recuperar Contraseña</h3>
+            <a href="#" class="modal-close">&times;</a>
+        </div>
+        <div class="modal-body">
+            <p>Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
+            <div class="form-group">
+                <input type="email" id="recovery-email" placeholder="tu@email.com">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" onclick="sendRecoveryEmail()" class="btn btn-primary">
+                <i class="fas fa-paper-plane"></i> Enviar Enlace
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('.auth-form');
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Validación básica
+            if (!email || !password) {
+                showMessage('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            // Simular envío de formulario
+            showMessage('Iniciando sesión...', 'info');
+            
+            // En una aplicación real, aquí iría la petición AJAX al servidor
+            setTimeout(() => {
+                // Simular login exitoso
+                if (email === 'demo@ecotrack.com' && password === 'ecotrack123') {
+                    showMessage('¡Bienvenido a EcoTrack!', 'success');
+                    setTimeout(() => {
+                        window.location.href = "{{ url_for('index') }}";
+                    }, 1500);
+                } else {
+                    showMessage('Credenciales incorrectas. Usa las credenciales demo.', 'error');
+                }
+            }, 1000);
+        });
+
+        // Efectos visuales en los inputs
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+
+        // Manejar modal de olvidar contraseña
+        const forgotPasswordLinks = document.querySelectorAll('.forgot-password');
+        const modal = document.getElementById('forgot-password');
+        
+        forgotPasswordLinks.forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                modal.style.display = 'block';
+            });
+        });
+
+        // Cerrar modal
+        document.querySelector('.modal-close').addEventListener('click', function(e) {
+            e.preventDefault();
+            modal.style.display = 'none';
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    });
+
+    function fillDemoCredentials() {
+        document.getElementById('email').value = 'demo@ecotrack.com';
+        document.getElementById('password').value = 'ecotrack123';
+        showMessage('Credenciales demo cargadas. ¡Ahora puedes iniciar sesión!', 'success');
+    }
+
+    function sendRecoveryEmail() {
+        const email = document.getElementById('recovery-email').value;
+        if (!email) {
+            showMessage('Por favor ingresa tu email', 'error');
+            return;
+        }
+        
+        showMessage(`Se ha enviado un enlace de recuperación a: ${email}`, 'success');
+        document.getElementById('forgot-password').style.display = 'none';
+        document.getElementById('recovery-email').value = '';
+    }
+
+    function showMessage(message, type) {
+        // Eliminar mensaje anterior si existe
+        const existingMessage = document.querySelector('.alert-message');
+        if (existingMessage) {
+            existingMessage.remove();
+        }
+        
+        const alert = document.createElement('div');
+        alert.className = `alert-message alert-${type}`;
+        alert.innerHTML = `
+            <div class="alert-content">
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.querySelector('.auth-card').insertBefore(alert, document.querySelector('.auth-form'));
+        
+        // Auto-eliminar después de 5 segundos
+        setTimeout(() => {
+            if (alert.parentElement) {
+                alert.remove();
+            }
+        }, 5000);
+    }
+</script>
+
+<style>
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 80vh;
+    align-items: center;
+}
+
+.auth-card {
+    background: white;
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.auth-icon i {
+    font-size: 2rem;
+    color: white;
+}
+
+.auth-header h2 {
+    color: #2E8B57;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.auth-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.auth-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.auth-form label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-weight: 500;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.auth-form input:focus {
+    border-color: #2E8B57;
+    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.1);
+    outline: none;
+}
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 0.5rem;
+}
+
+.checkbox input {
+    width: auto;
+    margin: 0;
+}
+
+.forgot-password {
+    color: #2E8B57;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.btn-large {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.auth-link {
+    color: #2E8B57;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.auth-link:hover {
+    text-decoration: underline;
+}
+
+.demo-info {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-top: 2rem;
+    border-left: 4px solid #2E8B57;
+}
+
+.demo-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.demo-header i {
+    color: #2E8B57;
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.demo-header h4 {
+    margin: 0;
+    color: #333;
+}
+
+.demo-info p {
+    margin-bottom: 1rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.demo-credentials {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    border: 1px solid #e0e0e0;
+}
+
+.demo-credentials p {
+    margin: 0.5rem 0;
+    font-family: monospace;
+}
+
+.demo-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.demo-actions .btn {
+    flex: 1;
+    text-align: center;
+}
+
+.benefits-section {
+    padding: 2rem;
+}
+
+.benefits-section h3 {
+    text-align: center;
+    color: #2E8B57;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.benefit-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    text-align: center;
+    border: 1px solid #f0f0f0;
+    transition: transform 0.3s ease;
+}
+
+.benefit-card:hover {
+    transform: translateY(-5px);
+}
+
+.benefit-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.benefit-icon i {
+    font-size: 1.5rem;
+    color: white;
+}
+
+.benefit-card h4 {
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.benefit-card p {
+    color: #666;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 15% auto;
+    padding: 0;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #2E8B57;
+}
+
+.modal-close {
+    color: #666;
+    font-size: 1.5rem;
+    text-decoration: none;
+}
+
+.modal-close:hover {
+    color: #333;
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e0e0e0;
+    text-align: right;
+}
+
+/* Alert Messages */
+.alert-message {
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    animation: slideIn 0.3s ease;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.alert-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        padding: 1rem;
+    }
+    
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .demo-actions {
+        flex-direction: column;
+    }
+    
+    .form-options {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+    
+    .auth-card {
+        padding: 1.5rem;
+    }
+}
+</style>
+{% endblock %}

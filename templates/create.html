@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Registrar Reciclaje - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-plus-circle"></i> Registrar Nuevo Reciclaje</h2>
+        <p>Registra los materiales que has reciclado y gana puntos ecológicos</p>
+    </div>
+
+    <form method="POST" class="recycling-form">
+        <div class="form-group">
+            <label for="category">
+                <i class="fas fa-cubes"></i> Tipo de Material *
+            </label>
+            <select name="category" id="category" required>
+                <option value="">Selecciona un material...</option>
+                {% for key, material in categories.items() %}
+                <option value="{{ key }}" data-points="{{ material.points }}" data-color="{{ material.color }}">
+                    {{ material.name }} ({{ material.points }} pts/unidad)
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="quantity">
+                <i class="fas fa-sort-amount-up"></i> Cantidad *
+            </label>
+            <input type="number" name="quantity" id="quantity" value="1" min="1" max="1000" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">
+                <i class="fas fa-sticky-note"></i> Descripción
+            </label>
+            <textarea name="description" id="description" rows="3" placeholder="Describe los materiales reciclados (botellas, papeles, etc.)..."></textarea>
+        </div>
+
+        <!-- Resumen de Puntos -->
+        <div id="points-summary" class="points-summary" style="display: none;">
+            <div class="summary-content">
+                <i class="fas fa-coins"></i>
+                <div class="summary-text">
+                    <strong>Puntos a ganar:</strong>
+                    <span id="total-points">0</span> puntos
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Registrar Reciclaje
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function calculatePoints() {
+        const categorySelect = document.getElementById('category');
+        const quantityInput = document.getElementById('quantity');
+        const pointsSummary = document.getElementById('points-summary');
+        
+        const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+        const pointsPerUnit = parseInt(selectedOption.getAttribute('data-points')) || 0;
+        const quantity = parseInt(quantityInput.value) || 0;
+        const totalPoints = pointsPerUnit * quantity;
+
+        if (categorySelect.value && quantity > 0) {
+            document.getElementById('total-points').textContent = totalPoints;
+            pointsSummary.style.display = 'flex';
+        } else {
+            pointsSummary.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    document.getElementById('category').addEventListener('change', calculatePoints);
+    document.getElementById('quantity').addEventListener('input', calculatePoints);
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', calculatePoints);
+</script>
+{% endblock %}

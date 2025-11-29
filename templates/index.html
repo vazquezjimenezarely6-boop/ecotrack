@@ -1,0 +1,759 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        <div class="welcome-content">
+            <h1>¡Hola, EcoGuerrero! 🌟</h1>
+            <p>Llevas <strong id="total-items-display">0</strong> items reciclados y <strong id="total-points-display">0</strong> puntos ganados</p>
+        </div>
+        <div class="level-display">
+            <div class="level-circle">
+                <div class="level-number" id="level-display">Nvl 1</div>
+                <div class="level-label">EcoTrack</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="items-count">0</h3>
+                <p>Items Reciclados</p>
+                <div class="stat-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="items-progress"></div>
+                    </div>
+                    <span id="items-goal">Meta mensual: 0/50</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="points-count">0</h3>
+                <p>Puntos Eco</p>
+                <div class="level-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="level-progress"></div>
+                    </div>
+                    <span id="level-text">Nivel 1 (0%)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="energy-saved">0.0</h3>
+                <p>kWh Ahorrados</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-cloud"></i>
+            </div>
+            <div class="stat-content">
+                <h3 id="co2-saved">0.0</h3>
+                <p>kg CO₂ Evitados</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-container">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-pie"></i> Distribución por Material</h3>
+                </div>
+                <div class="chart-wrapper">
+                    <div class="empty-chart" id="empty-chart">
+                        <i class="fas fa-chart-pie fa-3x"></i>
+                        <h4>No hay datos aún</h4>
+                        <p>Comienza a reciclar para ver estadísticas</p>
+                    </div>
+                    <canvas id="materialChart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="impact-dashboard">
+            <div class="impact-card">
+                <h3><i class="fas fa-chart-line"></i> Tu Impacto Ambiental</h3>
+                <div class="impact-metrics">
+                    <div class="impact-metric">
+                        <div class="metric-icon water">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h4 id="water-saved">0L</h4>
+                            <p>Agua ahorrada</p>
+                        </div>
+                    </div>
+                    <div class="impact-metric">
+                        <div class="metric-icon tree">
+                            <i class="fas fa-tree"></i>
+                        </div>
+                        <div class="metric-info">
+                            <h4 id="trees-saved">0.0</h4>
+                            <p>Árboles salvados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tip-card">
+                <div class="tip-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <h4>Consejo del Día</h4>
+                </div>
+                <p id="daily-tip">¡Recuerda separar correctamente tus residuos para un mejor reciclaje!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <div class="section-header">
+            <h3><i class="fas fa-history"></i> Actividad Reciente</h3>
+            <a href="{{ url_for('create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Registro
+            </a>
+        </div>
+
+        <div class="empty-state" id="empty-activity">
+            <div class="empty-icon">
+                <i class="fas fa-inbox"></i>
+            </div>
+            <h3>¡Comienza tu viaje ecológico!</h3>
+            <p>Registra tu primer reciclaje y comienza a ganar puntos.</p>
+            <a href="{{ url_for('create') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Registrar Primer Reciclaje
+            </a>
+        </div>
+
+        <div class="activity-list" id="activity-list" style="display: none;">
+            <!-- La actividad se cargará con JavaScript -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Cargar datos desde la API
+    loadDashboardData();
+    
+    // Consejos del día rotativos
+    const tips = [
+        "¡Recuerda separar correctamente tus residuos para un mejor reciclaje!",
+        "Lava los envases antes de reciclarlos para evitar contaminación.",
+        "Compacta las cajas de cartón para ahorrar espacio en el contenedor.",
+        "Los aparatos electrónicos deben llevarse a puntos de reciclaje especiales.",
+        "Reutiliza las bolsas de plástico varias veces antes de reciclarlas.",
+        "Separa el vidrio por colores para facilitar su reciclaje."
+    ];
+    
+    const randomTip = tips[Math.floor(Math.random() * tips.length)];
+    document.getElementById('daily-tip').textContent = randomTip;
+});
+
+function loadDashboardData() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            updateDashboard(data);
+            loadRecentActivity();
+        })
+        .catch(error => {
+            console.log('Error cargando datos del dashboard:', error);
+        });
+}
+
+function updateDashboard(stats) {
+    // Actualizar estadísticas principales
+    document.getElementById('total-items-display').textContent = stats.total_items || 0;
+    document.getElementById('total-points-display').textContent = stats.total_points || 0;
+    document.getElementById('items-count').textContent = stats.total_items || 0;
+    document.getElementById('points-count').textContent = stats.total_points || 0;
+    
+    // Calcular nivel y progreso
+    const totalPoints = stats.total_points || 0;
+    const level = Math.floor(totalPoints / 100) + 1;
+    const levelProgress = totalPoints % 100;
+    
+    document.getElementById('level-display').textContent = 'Nvl ' + level;
+    document.getElementById('level-progress').style.width = levelProgress + '%';
+    document.getElementById('level-text').textContent = 'Nivel ' + level + ' (' + levelProgress + '%)';
+    
+    // Calcular progreso de items
+    const totalItems = stats.total_items || 0;
+    const itemsProgress = Math.min((totalItems / 50) * 100, 100);
+    document.getElementById('items-progress').style.width = itemsProgress + '%';
+    document.getElementById('items-goal').textContent = 'Meta mensual: ' + totalItems + '/50';
+    
+    // Calcular impacto ambiental
+    const energySaved = (totalPoints * 0.5).toFixed(1);
+    const co2Saved = (totalPoints * 0.3).toFixed(1);
+    const waterSaved = totalPoints * 10;
+    const treesSaved = (totalPoints * 0.02).toFixed(1);
+    
+    document.getElementById('energy-saved').textContent = energySaved;
+    document.getElementById('co2-saved').textContent = co2Saved;
+    document.getElementById('water-saved').textContent = waterSaved + 'L';
+    document.getElementById('trees-saved').textContent = treesSaved;
+    
+    // Cargar gráfico si hay datos
+    if (totalItems > 0) {
+        loadMaterialChart();
+    }
+}
+
+function loadRecentActivity() {
+    fetch('/api/recent-activity')
+        .then(response => response.json())
+        .then(activities => {
+            displayRecentActivity(activities);
+        })
+        .catch(error => {
+            console.log('Error cargando actividad reciente:', error);
+        });
+}
+
+function displayRecentActivity(activities) {
+    const activityList = document.getElementById('activity-list');
+    const emptyActivity = document.getElementById('empty-activity');
+    
+    if (activities && activities.length > 0) {
+        emptyActivity.style.display = 'none';
+        activityList.style.display = 'block';
+        
+        let html = '';
+        activities.forEach(activity => {
+            html += `
+            <div class="activity-item">
+                <div class="activity-icon" style="background-color: #2E8B5720; color: #2E8B57">
+                    <i class="fas fa-recycle"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-main">
+                        <h4>${activity.category_name || 'Material'}</h4>
+                        <span class="activity-points">+${activity.points || 0} pts</span>
+                    </div>
+                    <div class="activity-details">
+                        <span>${activity.quantity || 0} items</span>
+                        <span class="activity-time">${formatDate(activity.timestamp || activity.date)}</span>
+                    </div>
+                    ${activity.description ? `<p class="activity-description">${activity.description}</p>` : ''}
+                </div>
+            </div>
+            `;
+        });
+        
+        activityList.innerHTML = html;
+    } else {
+        emptyActivity.style.display = 'block';
+        activityList.style.display = 'none';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Fecha no disponible';
+    
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('es-ES');
+    } catch (error) {
+        return dateString.substring(0, 10);
+    }
+}
+
+function loadMaterialChart() {
+    // Simular datos del gráfico - en una app real esto vendría de una API
+    const chartData = {
+        labels: ['Plástico', 'Papel', 'Vidrio', 'Metal', 'Orgánico', 'Electrónico'],
+        data: [25, 20, 15, 10, 5, 3],
+        colors: ['#007bff', '#28a745', '#fd7e14', '#6f42c1', '#795548', '#dc3545']
+    };
+    
+    const ctx = document.getElementById('materialChart').getContext('2d');
+    document.getElementById('empty-chart').style.display = 'none';
+    document.getElementById('materialChart').style.display = 'block';
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                data: chartData.data,
+                backgroundColor: chartData.colors,
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+}
+</script>
+
+<style>
+:root {
+    --primary-color: #2E8B57;
+    --primary-dark: #1f6b43;
+    --card-bg: #ffffff;
+    --text-color: #333;
+    --text-light: #666;
+    --radius: 12px;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --transition: all 0.3s ease;
+}
+
+.dashboard {
+    padding: 1rem 0;
+}
+
+/* Welcome Banner */
+.welcome-banner {
+    background: linear-gradient(135deg, var(--primary-color), #4CAF50);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow);
+}
+
+.welcome-content h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.8rem;
+}
+
+.welcome-content p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1rem;
+}
+
+.level-display {
+    text-align: center;
+}
+
+.level-circle {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(10px);
+}
+
+.level-number {
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.level-label {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+/* Quick Stats */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), #4CAF50);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content h3 {
+    font-size: 2rem;
+    margin: 0 0 0.25rem 0;
+    color: var(--primary-color);
+}
+
+.stat-content p {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+.progress-bar {
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 6px;
+    margin-bottom: 0.25rem;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: var(--primary-color);
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.stat-progress span,
+.level-progress span {
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+/* Charts Section */
+.charts-section {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-card,
+.impact-card,
+.tip-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+
+.chart-header {
+    margin-bottom: 1rem;
+}
+
+.chart-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-wrapper {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-chart {
+    text-align: center;
+    color: var(--text-light);
+}
+
+.empty-chart i {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.impact-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.impact-metrics {
+    display: grid;
+    gap: 1rem;
+}
+
+.impact-metric {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+}
+
+.metric-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.metric-icon.water {
+    background: rgba(33, 150, 243, 0.1);
+    color: #2196F3;
+}
+
+.metric-icon.tree {
+    background: rgba(76, 175, 80, 0.1);
+    color: #4CAF50;
+}
+
+.metric-info h4 {
+    margin: 0 0 0.25rem 0;
+    color: var(--text-color);
+}
+
+.metric-info p {
+    margin: 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+.tip-card {
+    background: linear-gradient(135deg, #FFF3CD, #FFEAA7);
+    border-left: 4px solid #FFC107;
+}
+
+.tip-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.tip-header i {
+    color: #FFC107;
+}
+
+.tip-header h4 {
+    margin: 0;
+    color: #856404;
+}
+
+.tip-card p {
+    margin: 0;
+    color: #856404;
+    line-height: 1.5;
+}
+
+/* Recent Activity */
+.recent-activity {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h3 {
+    margin: 0;
+    color: var(--text-color);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: var(--radius);
+    transition: var(--transition);
+}
+
+.activity-item:hover {
+    background: #e9ecef;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.activity-main h4 {
+    margin: 0;
+    color: var(--text-color);
+}
+
+.activity-points {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.activity-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-light);
+}
+
+.activity-time {
+    font-weight: 500;
+}
+
+.activity-description {
+    margin: 0.5rem 0 0 0;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--text-light);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+}
+
+.empty-state p {
+    margin: 0 0 1.5rem 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-dark);
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-banner {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+    
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .quick-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .activity-main {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

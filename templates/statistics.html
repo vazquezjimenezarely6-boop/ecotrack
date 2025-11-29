@@ -1,0 +1,709 @@
+{% extends "base.html" %}
+
+{% block title %}Estadísticas - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="statistics-page">
+    <!-- Header -->
+    <div class="page-header">
+        <h1><i class="fas fa-chart-bar"></i> Estadísticas Detalladas</h1>
+        <p>Analiza tu impacto ambiental y progreso de reciclaje</p>
+    </div>
+
+    <!-- Resumen General -->
+    <div class="stats-summary">
+        <div class="summary-card">
+            <div class="summary-icon">
+                <i class="fas fa-recycle"></i>
+            </div>
+            <div class="summary-content">
+                <h3 id="total-items">0</h3>
+                <p>Total Items Reciclados</p>
+                <span class="trend positive">Meta: 50 mensual</span>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="summary-content">
+                <h3 id="total-points">0</h3>
+                <p>Puntos Acumulados</p>
+                <span class="trend positive" id="level-display">Nivel 1</span>
+            </div>
+        </div>
+
+        <div class="summary-card">
+            <div class="summary-icon">
+                <i class="fas fa-award"></i>
+            </div>
+            <div class="summary-content">
+                <h3 id="top-material-count">0</h3>
+                <p id="top-material-name">Material favorito</p>
+                <span class="trend">Más reciclado</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="charts-container">
+        <div class="chart-section">
+            <h3><i class="fas fa-chart-pie"></i> Distribución por Material</h3>
+            <div class="chart-card">
+                <div class="empty-chart" id="empty-pie-chart">
+                    <i class="fas fa-chart-pie fa-3x"></i>
+                    <h4>No hay datos de reciclaje</h4>
+                    <p>Comienza a reciclar para ver estadísticas</p>
+                </div>
+                <canvas id="materialsChart" style="display: none;"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h3><i class="fas fa-chart-bar"></i> Cantidades por Material</h3>
+            <div class="chart-card">
+                <div class="empty-chart" id="empty-bar-chart">
+                    <i class="fas fa-chart-bar fa-3x"></i>
+                    <h4>No hay datos de reciclaje</h4>
+                    <p>Comienza a reciclar para ver estadísticas</p>
+                </div>
+                <canvas id="barChart" style="display: none;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles por Material -->
+    <div class="materials-breakdown">
+        <h3><i class="fas fa-list"></i> Desglose por Material</h3>
+        <div class="breakdown-grid" id="materials-breakdown">
+            <div class="empty-state">
+                <i class="fas fa-inbox fa-3x"></i>
+                <h4>No hay datos de reciclaje</h4>
+                <p>Comienza a reciclar para ver estadísticas</p>
+                <a href="{{ url_for('create') }}" class="btn btn-primary" style="margin-top: 1rem;">
+                    <i class="fas fa-plus"></i> Registrar Primer Reciclaje
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Metas y Objetivos -->
+    <div class="goals-section">
+        <h3><i class="fas fa-bullseye"></i> Tus Metas</h3>
+        <div class="goals-grid">
+            <div class="goal-card">
+                <h4>Meta Semanal</h4>
+                <div class="goal-progress">
+                    <div class="progress-circle">
+                        <div class="circle-progress" id="weekly-progress">
+                            <span class="progress-value">0/10</span>
+                        </div>
+                    </div>
+                </div>
+                <p id="weekly-goal-text">0 items faltantes esta semana</p>
+            </div>
+
+            <div class="goal-card">
+                <h4>Meta Mensual</h4>
+                <div class="goal-progress">
+                    <div class="progress-circle">
+                        <div class="circle-progress" id="monthly-progress">
+                            <span class="progress-value">0/50</span>
+                        </div>
+                    </div>
+                </div>
+                <p id="monthly-goal-text">0 items faltantes este mes</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadStatisticsData();
+});
+
+function loadStatisticsData() {
+    // Cargar datos generales
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(stats => {
+            updateSummaryCards(stats);
+            loadMaterialBreakdown();
+        })
+        .catch(error => {
+            console.log('Error cargando estadísticas:', error);
+        });
+}
+
+function updateSummaryCards(stats) {
+    // Actualizar tarjetas de resumen
+    document.getElementById('total-items').textContent = stats.total_items || 0;
+    document.getElementById('total-points').textContent = stats.total_points || 0;
+    
+    // Calcular nivel
+    const level = Math.floor((stats.total_points || 0) / 100) + 1;
+    document.getElementById('level-display').textContent = 'Nivel ' + level;
+    
+    // Cargar datos para materiales
+    loadMaterialsData();
+}
+
+function loadMaterialsData() {
+    fetch('/api/materials-data')
+        .then(response => response.json())
+        .then(data => {
+            if (data.materials && data.materials.length > 0) {
+                createCharts(data);
+                updateMaterialBreakdown(data);
+                updateTopMaterial(data);
+            }
+        })
+        .catch(error => {
+            console.log('Error cargando datos de materiales:', error);
+        });
+}
+
+function createCharts(data) {
+    // Ocultar mensajes vacíos y mostrar gráficos
+    document.getElementById('empty-pie-chart').style.display = 'none';
+    document.getElementById('empty-bar-chart').style.display = 'none';
+    document.getElementById('materialsChart').style.display = 'block';
+    document.getElementById('barChart').style.display = 'block';
+    
+    // Gráfico de torta
+    const pieCtx = document.getElementById('materialsChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'doughnut',
+        data: {
+            labels: data.materials,
+            datasets: [{
+                data: data.quantities,
+                backgroundColor: data.colors,
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            },
+            cutout: '60%'
+        }
+    });
+    
+    // Gráfico de barras
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: data.materials,
+            datasets: [{
+                label: 'Items Reciclados',
+                data: data.quantities,
+                backgroundColor: data.colors,
+                borderWidth: 0,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+}
+
+function updateMaterialBreakdown(data) {
+    const breakdownGrid = document.getElementById('materials-breakdown');
+    const totalItems = data.quantities.reduce((sum, quantity) => sum + quantity, 0);
+    
+    if (totalItems > 0) {
+        let html = '';
+        data.materials.forEach((material, index) => {
+            const quantity = data.quantities[index];
+            const percentage = totalItems > 0 ? (quantity / totalItems * 100) : 0;
+            const color = data.colors[index];
+            
+            html += `
+            <div class="material-breakdown-card">
+                <div class="material-header">
+                    <div class="material-icon" style="background: ${color};">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <div class="material-info">
+                        <h4>${material}</h4>
+                        <p>${quantity} items reciclados</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <span>${percentage.toFixed(1)}%</span>
+                </div>
+            </div>
+            `;
+        });
+        breakdownGrid.innerHTML = html;
+    }
+}
+
+function updateTopMaterial(data) {
+    if (data.materials && data.materials.length > 0) {
+        let maxQuantity = 0;
+        let topMaterial = '';
+        let topMaterialIndex = -1;
+        
+        data.quantities.forEach((quantity, index) => {
+            if (quantity > maxQuantity) {
+                maxQuantity = quantity;
+                topMaterial = data.materials[index];
+                topMaterialIndex = index;
+            }
+        });
+        
+        if (topMaterialIndex !== -1) {
+            document.getElementById('top-material-count').textContent = maxQuantity;
+            document.getElementById('top-material-name').textContent = topMaterial;
+        }
+    }
+}
+
+// Actualizar progreso de metas
+function updateGoalsProgress(totalItems) {
+    const weeklyGoal = 10;
+    const monthlyGoal = 50;
+    
+    const weeklyPercentage = Math.min((totalItems / weeklyGoal) * 100, 100);
+    const monthlyPercentage = Math.min((totalItems / monthlyGoal) * 100, 100);
+    
+    // Actualizar círculos de progreso
+    document.getElementById('weekly-progress').style.background = 
+        `conic-gradient(#4CAF50 ${weeklyPercentage}%, #e0e0e0 ${weeklyPercentage}% 100%)`;
+    document.getElementById('monthly-progress').style.background = 
+        `conic-gradient(#4CAF50 ${monthlyPercentage}%, #e0e0e0 ${monthlyPercentage}% 100%)`;
+    
+    // Actualizar textos
+    document.getElementById('weekly-progress').querySelector('.progress-value').textContent = 
+        `${totalItems}/${weeklyGoal}`;
+    document.getElementById('monthly-progress').querySelector('.progress-value').textContent = 
+        `${totalItems}/${monthlyGoal}`;
+    
+    const weeklyRemaining = weeklyGoal - totalItems;
+    const monthlyRemaining = monthlyGoal - totalItems;
+    
+    document.getElementById('weekly-goal-text').textContent = 
+        weeklyRemaining > 0 ? `${weeklyRemaining} items faltantes esta semana` : '¡Meta semanal cumplida! 🎉';
+    document.getElementById('monthly-goal-text').textContent = 
+        monthlyRemaining > 0 ? `${monthlyRemaining} items faltantes este mes` : '¡Meta mensual cumplida! 🎉';
+}
+
+// Simular datos de materiales (en una app real esto vendría del backend)
+function simulateMaterialsData() {
+    return {
+        materials: ['Plástico', 'Papel', 'Vidrio', 'Metal', 'Orgánico', 'Electrónico'],
+        quantities: [15, 12, 8, 5, 3, 2],
+        colors: ['#007bff', '#28a745', '#fd7e14', '#6f42c1', '#795548', '#dc3545']
+    };
+}
+</script>
+
+<style>
+.statistics-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    color: #2E8B57;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.page-header p {
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.summary-card:hover {
+    transform: translateY(-5px);
+}
+
+.summary-icon {
+    width: 70px;
+    height: 70px;
+    background: linear-gradient(135deg, #2E8B57, #4CAF50);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.summary-icon i {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.summary-content h3 {
+    font-size: 2.2rem;
+    color: #2E8B57;
+    margin: 0;
+    font-weight: 700;
+}
+
+.summary-content p {
+    color: #333;
+    margin: 0.5rem 0;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.trend {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    background: #e8f5e8;
+    color: #2E8B57;
+    font-weight: 500;
+}
+
+.charts-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.chart-section h3 {
+    color: #333;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.empty-chart {
+    text-align: center;
+    color: #666;
+    padding: 2rem;
+}
+
+.empty-chart i {
+    margin-bottom: 1rem;
+    color: #ccc;
+    font-size: 3rem;
+}
+
+.empty-chart h4 {
+    margin: 0.5rem 0;
+    color: #333;
+}
+
+.empty-chart p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.materials-breakdown {
+    margin-bottom: 2rem;
+}
+
+.materials-breakdown h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.material-breakdown-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    border-left: 4px solid #2E8B57;
+}
+
+.material-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.material-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.material-info h4 {
+    margin: 0;
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.material-info p {
+    margin: 0.2rem 0 0 0;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2E8B57;
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+.progress-container span {
+    color: #666;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 50px;
+    text-align: right;
+}
+
+.goals-section {
+    margin-bottom: 2rem;
+}
+
+.goals-section h3 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.goals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.goal-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.goal-card h4 {
+    color: #333;
+    margin-bottom: 1.5rem;
+    font-size: 1.3rem;
+}
+
+.progress-circle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.circle-progress {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: conic-gradient(#e0e0e0 0%, #e0e0e0 100%);
+    transition: background 0.5s ease;
+}
+
+.progress-value {
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+    background: white;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.goal-card p {
+    color: #666;
+    margin: 0;
+    font-weight: 500;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #666;
+    grid-column: 1 / -1;
+}
+
+.empty-state i {
+    margin-bottom: 1rem;
+    color: #ccc;
+    font-size: 3rem;
+}
+
+.empty-state h4 {
+    margin: 0.5rem 0;
+    color: #333;
+}
+
+.empty-state p {
+    margin: 0.5rem 0 1.5rem 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    font-family: inherit;
+}
+
+.btn-primary {
+    background: #2E8B57;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #1f6b43;
+    transform: translateY(-2px);
+    color: white;
+    text-decoration: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .statistics-page {
+        padding: 0.5rem;
+    }
+    
+    .charts-container {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-summary {
+        grid-template-columns: 1fr;
+    }
+    
+    .breakdown-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .goals-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .summary-card {
+        padding: 1rem;
+    }
+    
+    .chart-card {
+        padding: 1rem;
+        height: 250px;
+    }
+}
+</style>
+{% endblock %}

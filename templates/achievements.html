@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}Logros - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="achievements-page">
+    <!-- Header -->
+    <div class="page-header animate__animated animate__fadeIn">
+        <h1><i class="fas fa-trophy"></i> Mis Logros</h1>
+        <p>Descubre tus recompensas y sigue progresando</p>
+        
+        <div class="achievements-summary">
+            <div class="summary-badge">
+                <span class="count">{{ unlocked_count }}/{{ total_achievements }}</span>
+                <span class="label">Logros Desbloqueados</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logros Desbloqueados -->
+    <div class="achievements-section animate__animated animate__fadeInUp">
+        <h2><i class="fas fa-unlock"></i> Logros Desbloqueados</h2>
+        
+        {% if unlocked_achievements %}
+        <div class="achievements-grid">
+            {% for achievement in unlocked_achievements %}
+            <div class="achievement-card unlocked animate__animated animate__bounceIn" 
+            <div class="achievement-card unlocked animate__animated animate__bounceIn">
+                    <i class="{{ achievement.icon }}"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3>{{ achievement.name }}</h3>
+                    <p>{{ achievement.description }}</p>
+                    {% if achievement.points %}
+                    <span class="points-badge">+{{ achievement.points }} puntos</span>
+                    {% endif %}
+                </div>
+                <div class="achievement-status">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-trophy fa-3x"></i>
+            <h3>Aún no tienes logros</h3>
+            <p>Comienza a reciclar para desbloquear tus primeros logros</p>
+            <a href="{{ url_for('create') }}" class="btn-primary">
+                <i class="fas fa-plus"></i> Registrar Primer Reciclaje
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Logros por Desbloquear -->
+    {% if locked_achievements %}
+    <div class="achievements-section animate__animated animate__fadeInUp">
+        <h2><i class="fas fa-lock"></i> Próximos Logros</h2>
+        <div class="achievements-grid">
+            {% for achievement in locked_achievements %}
+            <div class="achievement-card locked">
+                <div class="achievement-icon">
+                    <i class="{{ achievement.icon }}"></i>
+                </div>
+                <div class="achievement-content">
+                    <h3>{{ achievement.name }}</h3>
+                    <p>{{ achievement.description }}</p>
+                    
+                    <!-- Barra de progreso -->
+                    {% if achievement.progress is defined %}
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            div class="progress-fill" style="width: 0%"></div>
+                        <span class="progress-text">{{ achievement.progress|int }}%</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="achievement-status">
+                    <i class="fas fa-lock"></i>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Progreso General -->
+    <div class="progress-section animate__animated animate__fadeInUp">
+        <h2><i class="fas fa-chart-line"></i> Tu Progreso</h2>
+        <div class="progress-cards">
+            <div class="progress-card">
+                <h4>Nivel Actual</h4>
+                <div class="level-display">
+                    <span class="level-number">{{ data.level if data.level is defined else 1 }}</span>
+                    <span class="level-label">EcoTrack</span>
+                </div>
+                <p>Siguiente nivel en {{ (100 - (data.total_points % 100)) if data.total_points is defined else 100 }} puntos</p>
+            </div>
+
+            <div class="progress-card">
+                <h4>Puntos Totales</h4>
+                <div class="points-display">
+                    <span class="points-number">{{ data.total_points if data.total_points is defined else 0 }}</span>
+                    <span class="points-label">puntos</span>
+                </div>
+                <p>Continúa reciclando para ganar más puntos</p>
+            </div>
+
+            <div class="progress-card">
+                <h4>Items Reciclados</h4>
+                <div class="items-display">
+                    <span class="items-number">{{ data.total_items if data.total_items is defined else 0 }}</span>
+                    <span class="items-label">items</span>
+                </div>
+                <p>Impacto ambiental positivo</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
